@@ -39,6 +39,11 @@ namespace dukglue {
 		DUKGLUE_SIMPLE_VALUE_TYPE(uint16_t, duk_is_number, duk_get_uint, duk_push_uint, value)
 		DUKGLUE_SIMPLE_VALUE_TYPE(uint32_t, duk_is_number, duk_get_uint, duk_push_uint, value)
 		DUKGLUE_SIMPLE_VALUE_TYPE(uint64_t, duk_is_number, duk_get_number, duk_push_number, value) // have to cast to double
+#ifdef __amigaos__
+		// size_t is unsigned long on m68k: none of the fixed-width types above
+		DUKGLUE_SIMPLE_VALUE_TYPE(unsigned long, duk_is_number, duk_get_number, duk_push_number, value)
+		DUKGLUE_SIMPLE_VALUE_TYPE(long, duk_is_number, duk_get_number, duk_push_number, value)
+#endif
 
 		DUKGLUE_SIMPLE_VALUE_TYPE(int8_t,  duk_is_number, duk_get_int, duk_push_int, value)
 		DUKGLUE_SIMPLE_VALUE_TYPE(int16_t, duk_is_number, duk_get_int, duk_push_int, value)

@@ -31,7 +31,14 @@ std::shared_ptr<cScriptingEngine> g_ScriptingEngine;
 
 const char gPathSeperator = '/';
 
+#ifdef __amigaos__
+extern "C" void amiga_start(void); // amiga/amiga_start.c
+#endif
+
 int main(int argc, char *argv[]) {
+#ifdef __amigaos__
+	amiga_start();
+#endif
 	auto result = start(argc, argv);
 	if (result == -1) {
 		std::cout << "Press enter to continue\n";
