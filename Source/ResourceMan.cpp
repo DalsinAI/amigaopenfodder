@@ -608,7 +608,10 @@ std::vector<std::string> cResourceMan::DirectoryList(const std::string& pPath, c
 	// Build the file path
 	std::stringstream finalPath;
 
-	finalPath << pPath << "/";
+	// only one '/': on AmigaDOS "a//" is a's parent drawer
+	finalPath << pPath;
+	if (pPath.empty() || pPath[pPath.size() - 1] != '/')
+		finalPath << "/";
 
 	findType = pExtension;
 

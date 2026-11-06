@@ -1,0 +1,80 @@
+# Open Fodder 2.0.0 for AmigaOS 3.x, 68040/68060 + FPU, on OpenGPU's SDL 2.
+#
+#   make -f amiga/Makefile.amigaos -j2 dist \
+#        STOVE=/path/to/openamigagcc-16.2.0-open4 \
+#        NDK=/path/to/OpenNDK/Include_H SDL2KIT=/path/to/opengpu-sdk
+#
+# CMake is not run: these are CMakeLists.txt's sources (every Source/*.cpp,
+# Duktape included) and its C++14 standard. SDL2KIT is the OpenGPU developer
+# kit (SDL2 and SDL2_mixer: the program's halves of LIBS:OpenGPU's modules).
+# Source/gitver.hpp, which CMake makes from cmake/gitver.hpp.in, is made
+# here with the release's tag. The game's data (the Amiga or PC Cannon
+# Fodder files, or the free Amiga demo's) goes in the drawer's Data/: none
+# is shipped.
+
+STOVE   ?= $(HOME)/CradleLab/toolchain/openamigagcc-16.2.0-open4-x86_64-linux
+NDK     ?= $(HOME)/CradleLab/gfopensdk/OpenNDK/Include_H
+SDL2KIT ?= /mnt/amigachrome/team2/deps/opengpu-sdk
+CC      = $(STOVE)/bin/m68k-amigaos-gcc
+CXX     = $(STOVE)/bin/m68k-amigaos-g++
+STRIP   = $(STOVE)/bin/m68k-amigaos-strip
+CPU     ?= -m68040 -m68881
+# -fno-tree-loop-distribute-patterns: GCC 16's loop miscompile (the kit's
+# sdl2-config gives it for GCC 16 too).
+OPT     ?= -O2 -fomit-frame-pointer -fno-tree-loop-distribute-patterns
+
+BUILD   = build/amigaos
+OBJDIR  = $(BUILD)/obj
+PROG    = OpenFodder
+OUT     = dist/OpenFodder
+
+DEFS    = -D__amigaos__ -DNDEBUG
+INC     = -ISource -I$(BUILD)/gen -I$(SDL2KIT)/include -I$(SDL2KIT)/include/SDL2
+CFLAGS  = -noixemul $(OPT) $(CPU) -fno-common
+CXXFLAGS = $(CFLAGS) $(DEFS) $(INC) -std=gnu++14 -Wno-psabi -include amiga/amiga_prelude.hpp
+LDFLAGS = -noixemul $(CPU)
+LIBS    = -L$(SDL2KIT)/lib -lSDL2_mixer -lSDL2 -lpthread -latomic -lm
+
+SRC     = $(shell find Source -name '*.cpp' ! -name 'duk_trans_socket_windows.cpp')
+CSRC    = amiga/amiga_start.c amiga/amiga_screens.c amiga/stack.c
+OBJS    = $(SRC:%.cpp=$(OBJDIR)/%.o) $(CSRC:%.c=$(OBJDIR)/%.o)
+HDRS    = $(shell find Source -name '*.hpp' -o -name '*.h')
+ICONS   = $(wildcard amiga/icons/*.info)
+
+all: $(BUILD)/$(PROG)
+
+$(BUILD)/$(PROG): $(OBJS)
+	$(CXX) $(LDFLAGS) -o $@.debug $(OBJS) $(LIBS)
+	$(STRIP) -o $@ $@.debug
+
+$(BUILD)/gen/gitver.hpp: cmake/gitver.hpp.in
+	@mkdir -p $(dir $@)
+	sed 's/@OPENFODDER_COMMIT_SHA1_SHORT@/2.0.0/' $< > $@
+
+$(OBJDIR)/Source/%.o: Source/%.cpp $(HDRS) $(BUILD)/gen/gitver.hpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJDIR)/amiga/%.o: amiga/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -I$(NDK) -Wall -Wextra -c -o $@ $<
+
+# The drawer: the program, an empty Data/ for the game's files, ReadMe and
+# the licences. Open Fodder's campaigns and the six free Amiga demos come
+# as upstream's data pack (see the ReadMe), not from this repository.
+dist: $(BUILD)/$(PROG) $(ICONS) AMIGA_PORT.md
+	rm -rf $(OUT) && mkdir -p $(OUT)
+	cp $(BUILD)/$(PROG) $(OUT)/
+	mkdir -p $(OUT)/Data
+	cp AMIGA_PORT.md $(OUT)/ReadMe
+	cp COPYING $(OUT)/COPYING.txt
+	for f in COPYING.BSD.txt COPYING.LGPLv2.1.txt COPYING.MIT.txt COPYING.ZLIB.txt; do cp $$f $(OUT)/; done
+	cp amiga/icons/OpenFodder.info amiga/icons/ReadMe.info $(OUT)/
+	for f in COPYING.txt COPYING.BSD.txt COPYING.LGPLv2.1.txt COPYING.MIT.txt COPYING.ZLIB.txt; do cp amiga/icons/ReadMe.info $(OUT)/$$f.info; done
+	cd $(OUT) && find . -mindepth 1 -type d | while read d; do cp $(CURDIR)/amiga/icons/Folder.info "$$d.info"; done
+	cp amiga/icons/OpenFodder-drawer.info dist/OpenFodder.info
+
+clean:
+	rm -rf $(BUILD)
+
+.PHONY: all clean dist
