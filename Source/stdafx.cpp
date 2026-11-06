@@ -54,6 +54,11 @@ int main(int argc, char *argv[]) {
  * @param pSize Number of words
  */
 void tool_EndianSwap(uint8 *pBuffer, size_t pSize) {
+#if defined(__amigaos__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	// The game's files are big endian already: nothing to do on a big-endian CPU.
+	(void)pBuffer; (void)pSize;
+	return;
+#endif
 	uint8 *pDest = pBuffer;
 
 	pSize /= 2;

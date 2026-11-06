@@ -9,13 +9,12 @@ screen, on OpenGPU's SDL 2.
 
 Base: tag 2.0.0 (commit 5eb41363). Branch team2/openfodder-amiga.
 
-Status: first lab run (Instance-45, 6 November 2026, with the data pack):
-Open Fodder finds the demos and opens its 640x480 screen with the
-"Select Campaign" menu, animated; but the mouse does nothing (the
-crosshair neither moves nor clicks). Open Fodder uses SDL's relative mouse
-mode (SDL_SetRelativeMouseMode, Source/Window.cpp), which OpenGPU's
-SDL2.module does not seem to feed. To do: absolute mouse events on the
-Amiga, or relative mode in SDL2.module; then play a demo.
+Status: lab runs (Instance-45, 6 November 2026, with the data pack): the
+"Select Campaign" menu, the chapter book and the Amiga Format Christmas
+Special's first mission (map, squad, sidebar) run, at full screen. The
+mouse needs SDL2.module's relative mode (gfopenrtg #181, OpenGPU after
+0.6): with 0.6 the crosshair neither moves nor clicks. Not yet played
+through a whole mission.
 
 
 What you need
@@ -71,6 +70,11 @@ What was changed
   strtoll, strtoull, strtof, strtold, llabs, stoll, stoull and stold, which
   the GCC 16 stove's libstdc++ for the 68040 leaves out (configured
   without _GLIBCXX_USE_C99) though libnix has them.
+- Source/stdafx.cpp, tool_EndianSwap(): does nothing on a big-endian CPU.
+  The maps and sprite lists (.map, .spt) and the tile tables are big
+  endian and upstream swaps them for x86; on the 68k that swap turned a
+  sprite's type into junk, and choosing a mission jumped through
+  mSprite_Function[] into nowhere (Sprite_Handle_Loop).
 - Source/Utils/dukglue/detail_primitive_types.h: bindings for unsigned
   long and long, which size_t and ssize_t are on m68k (on Linux they are
   the 64-bit types dukglue binds already).
