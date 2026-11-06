@@ -9,7 +9,13 @@ screen, on OpenGPU's SDL 2.
 
 Base: tag 2.0.0 (commit 5eb41363). Branch team2/openfodder-amiga.
 
-Status: built, not yet run in the lab.
+Status: first lab run (Instance-45, 6 November 2026, with the data pack):
+Open Fodder finds the demos and opens its 640x480 screen with the
+"Select Campaign" menu, animated; but the mouse does nothing (the
+crosshair neither moves nor clicks). Open Fodder uses SDL's relative mouse
+mode (SDL_SetRelativeMouseMode, Source/Window.cpp), which OpenGPU's
+SDL2.module does not seem to feed. To do: absolute mouse events on the
+Amiga, or relative mode in SDL2.module; then play a demo.
 
 
 What you need
@@ -58,6 +64,9 @@ What was changed
   amiga_start.c: Open Fodder looks for Data/ in the current directory
   first) and closes at exit the screens SDL2.module 0.6 can leave
   (amiga/amiga_screens.c). amiga/stack.c: 512 KB of stack.
+- Source/ResourceMan.cpp, DirectoryList(): one '/' between a drawer and
+  its files (upstream always added one, and on AmigaDOS "a//" is a's
+  parent: no game data was found).
 - amiga/amiga_prelude.hpp (included before every file): std::atoll,
   strtoll, strtoull, strtof, strtold, llabs, stoll, stoull and stold, which
   the GCC 16 stove's libstdc++ for the 68040 leaves out (configured
