@@ -19230,6 +19230,11 @@ void cFodder::MapTiles_Draw() {
 
 void cFodder::Exit(unsigned int pExitCode) {
 
+#ifdef __amigaos__
+    /* Right Amiga + Q and the close gadget (SDL_QUIT): stop the interrupt
+       thread first, or exit() waits for it and the program never ends */
+    mExit = true;
+#endif
     exit(pExitCode);
 }
 
