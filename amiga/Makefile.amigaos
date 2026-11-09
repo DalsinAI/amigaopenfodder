@@ -67,6 +67,7 @@ dist: $(BUILD)/$(PROG) $(ICONS) AMIGA_PORT.md
 	cp $(BUILD)/$(PROG) $(OUT)/
 	mkdir -p $(OUT)/Data
 	cp AMIGA_PORT.md $(OUT)/ReadMe
+	cp amiga/Controls $(OUT)/Controls
 	cp COPYING $(OUT)/COPYING.txt
 	for f in COPYING.BSD.txt COPYING.LGPLv2.1.txt COPYING.MIT.txt COPYING.ZLIB.txt; do cp $$f $(OUT)/; done
 	cp amiga/icons/OpenFodder.info amiga/icons/ReadMe.info $(OUT)/
